@@ -12,7 +12,6 @@ import { useEffect, lazy, Suspense, type ReactNode } from "react";
 import cairoArabic400 from "@fontsource/cairo/files/cairo-arabic-400-normal.woff2?url";
 import cairoArabic700 from "@fontsource/cairo/files/cairo-arabic-700-normal.woff2?url";
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "../context/AuthContext";
 import { StoreProvider } from "../context/StoreContext";
 import { Toaster } from "../components/ui/sonner";
@@ -50,7 +49,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }
   const router = useRouter();
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    console.error("[ErrorBoundary]", error);
   }, [error]);
 
   return (
