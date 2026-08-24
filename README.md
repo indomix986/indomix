@@ -1,26 +1,46 @@
-# Noodle Haven
+# Noodle Haven 🍜
 
-عندك ايقونة المطعم ده خاص بالاندومي اريد عمل موقع الكتروني خاص به ولكن اريده بنفس ديزاين الموقع اللي بعت لك صورته الثانية بس بدون تقليد الهوية البصرية اريدك ان تصنع لي هوية بصرية خاصة باللوجو اللتي ارسلته لك
+براند متخصص في الإندومي ووصفاته، مع هوية بصرية مستوحاة من اللوجو الخاص بالمشروع.
 
-هو براند مختص في الاندومي ووصفات مختصة به
+---
 
-This project was built with [Lovable](https://lovable.dev).
+## Stack
 
-## Build with Lovable
+- **React 19** + **TanStack Router / Start**
+- **Tailwind CSS v4**
+- **Supabase** — auth + database
+- **GSAP** + **Lenis** — animations & smooth scroll
+- **Vite 8** — build tool
+- **TypeScript**
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/04b07143-0c22-4b8e-afaa-bfefd8375573).
+## متطلبات
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+- Node.js (يُنصح بالتثبيت عبر [nvm](https://github.com/nvm-sh/nvm#installing-and-updating))
+- npm أو bun
 
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## تشغيل محلي
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+git clone <repository-url>
+cd noodle-haven-main
+npm install
 npm run dev
+```
+
+## أوامر مفيدة
+
+| الأمر | الوظيفة |
+|-------|---------|
+| `npm run dev` | تشغيل بيئة التطوير |
+| `npm run build` | بناء للإنتاج |
+| `npm run preview` | معاينة البناء |
+| `npm run lint` | فحص الكود |
+| `npm run format` | تنسيق الكود |
+
+## متغيرات البيئة
+
+انسخ `.env.example` إلى `.env` وعبّئ:
+
+```sh
+cp .env.example .env
 ```

@@ -11,18 +11,19 @@ VALUES
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 -- 2. SEED CATEGORIES
-INSERT INTO public.categories (id, name, display_order, image_url, is_active)
+INSERT INTO public.categories (id, name, display_order, image_url, badge_text, is_active)
 VALUES
-  ('classic', 'إندومي كلاسيك', 1, '/assets/cat-classic.jpg', true),
-  ('cheese', 'إندومي بالجبنة', 2, '/assets/cat-cheese.jpg', true),
-  ('chicken', 'إندومي بالفراخ', 3, '/assets/cat-chicken.jpg', true),
-  ('seafood', 'إندومي سي فود', 4, '/assets/cat-seafood.jpg', true),
-  ('snacks', 'سناكس ومقبلات', 5, '/assets/cat-snacks.jpg', true),
-  ('boxes', 'بوكس العزومة', 6, '/assets/hero-noodles.jpg', true)
+  ('classic', 'إندومي كلاسيك', 1, '/assets/cat-classic.jpg', 'الأكثر طلبًا', true),
+  ('cheese', 'إندومي بالجبنة', 2, '/assets/cat-cheese.jpg', 'غرقان جبنة', true),
+  ('chicken', 'إندومي بالفراخ', 3, '/assets/cat-chicken.jpg', 'فراخ كريسبي', true),
+  ('seafood', 'إندومي سي فود', 4, '/assets/cat-seafood.jpg', 'توم يوم حار', true),
+  ('snacks', 'سناكس ومقبلات', 5, '/assets/cat-snacks.jpg', 'مقرمشات جانبية', true),
+  ('boxes', 'بوكس العزومة', 6, '/assets/hero-noodles.jpg', 'عروض التوفير', true)
 ON CONFLICT (id) DO UPDATE SET
   name = EXCLUDED.name,
   display_order = EXCLUDED.display_order,
   image_url = EXCLUDED.image_url,
+  badge_text = EXCLUDED.badge_text,
   is_active = EXCLUDED.is_active;
 
 -- 3. SEED PRODUCTS

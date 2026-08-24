@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Plus, Clock } from "lucide-react";
 import type { Offer } from "@/types/product";
 import { useStore } from "@/context/StoreContext";
+import { getOptimizedImageUrl, getImageSrcSet } from "@/lib/image-utils";
 
 interface OfferCardProps {
   offer: Offer;
@@ -30,10 +31,6 @@ export function OfferCard({ offer }: OfferCardProps) {
       tag: offer.tag || offer.discountBadge,
       rating: 5.0,
       reviewsCount: 1,
-      prepTime: "١٠ دقائق",
-      calories: "عرض وبكج خاص",
-      spicinessDefault: "بدون شطة",
-      availableSpiciness: ["بدون شطة", "بارد", "متوسط", "حار"],
       extras: [],
     };
     addToCart(product);
@@ -49,12 +46,14 @@ export function OfferCard({ offer }: OfferCardProps) {
           className="block size-full"
         >
           <img
-            src={offer.img}
+            src={getOptimizedImageUrl(offer.img, 400)}
+            srcSet={getImageSrcSet(offer.img, [200, 400, 600])}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             alt={offer.title}
             loading="lazy"
             decoding="async"
-            width={600}
-            height={450}
+            width={400}
+            height={300}
             className="aspect-[4/3] size-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </Link>
@@ -65,12 +64,12 @@ export function OfferCard({ offer }: OfferCardProps) {
         </span>
 
         {/* Tag on top end */}
-        <span className="absolute end-2 top-2 rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-bold text-primary backdrop-blur">
+        <span className="absolute end-2 top-2 rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-bold text-primary shadow-xs">
           {offer.tag}
         </span>
 
         {/* Validity on bottom start */}
-        <div className="absolute bottom-2 start-2 flex items-center gap-1 rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-bold text-foreground backdrop-blur">
+        <div className="absolute bottom-2 start-2 flex items-center gap-1 rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-bold text-foreground shadow-xs">
           <Clock className="size-3 text-chili" />
           <span>{offer.validUntil}</span>
         </div>

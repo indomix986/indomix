@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 import type { Product, ExtraOption } from "@/types/product";
 import {
   CART_STORAGE_KEY,
@@ -11,6 +12,44 @@ import { useRestaurantSettings } from "@/hooks/use-catalog";
 
 export type { CartItem } from "@/types/store";
 
+const ExtraOptionSchema: z.ZodType<ExtraOption> = z.object({
+  id: z.string(),
+  name: z.string(),
+  price: z.number().min(0),
+});
+
+const ProductSchema: z.ZodType<Product> = z.object({
+  id: z.string(),
+  name: z.string(),
+  category: z.string(),
+  categoryName: z.string(),
+  desc: z.string(),
+  shortDesc: z.string(),
+  price: z.number().min(0),
+  oldPrice: z.number().min(0).nullish(),
+  img: z.string(),
+  tag: z.string().optional(),
+  rating: z.number(),
+  reviewsCount: z.number(),
+  extras: z.array(ExtraOptionSchema),
+  isPopular: z.boolean().optional(),
+  isAvailable: z.boolean().optional(),
+});
+
+const CartItemSchema: z.ZodType<CartItem> = z.object({
+  id: z.string(),
+  productId: z.string(),
+  product: ProductSchema,
+  quantity: z.number().min(1),
+  spiciness: z.string(),
+  selectedExtras: z.array(ExtraOptionSchema),
+  notes: z.string().optional(),
+  unitPrice: z.number().min(0),
+});
+
+const CartSchema: z.ZodType<CartItem[]> = z.array(CartItemSchema);
+const FavoritesSchema: z.ZodType<string[]> = z.array(z.string());
+
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
@@ -19,19 +58,33 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [favorites, setFavorites] = useState<string[]>([]);
   const { data: settings } = useRestaurantSettings();
 
-  // Load cart & favorites from localStorage on mount (hydration-safe)
+  // Load cart & favorites from localStorage on mount (hydration-safe with Zod validation)
   useEffect(() => {
     try {
       const saved = localStorage.getItem(CART_STORAGE_KEY);
       if (saved) {
-        setCart(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        const result = CartSchema.safeParse(parsed);
+        if (result.success) {
+          setCart(result.data);
+        } else {
+          console.warn("Invalid cart data in localStorage, resetting cart:", result.error);
+          localStorage.removeItem(CART_STORAGE_KEY);
+        }
       }
       const savedFavs = localStorage.getItem(FAVORITES_STORAGE_KEY);
       if (savedFavs) {
-        setFavorites(JSON.parse(savedFavs));
+        const parsedFavs = JSON.parse(savedFavs);
+        const favResult = FavoritesSchema.safeParse(parsedFavs);
+        if (favResult.success) {
+          setFavorites(favResult.data);
+        } else {
+          console.warn("Invalid favorites data in localStorage, resetting favorites:", favResult.error);
+          localStorage.removeItem(FAVORITES_STORAGE_KEY);
+        }
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error("Failed to load state from localStorage", err);
     }
     isLoadedRef.current = true;
   }, []);
@@ -60,7 +113,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const addToCart = useCallback((
     product: Product,
     quantity = 1,
-    spiciness = product.spicinessDefault,
+    spiciness = "",
     selectedExtras: ExtraOption[] = [],
     notes = "",
   ) => {

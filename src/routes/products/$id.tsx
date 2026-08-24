@@ -21,9 +21,12 @@ import { useStore } from "@/context/StoreContext";
 import {
   useSingleProduct,
   useOffers,
+  useProducts,
   singleProductQueryOptions,
   offersQueryOptions,
+  productsQueryOptions,
 } from "@/hooks/use-catalog";
+import { getOptimizedImageUrl, getImageSrcSet } from "@/lib/image-utils";
 
 export const Route = createFileRoute("/products/$id")({
   validateSearch: (search: Record<string, unknown>): { from?: string } => {
@@ -35,6 +38,7 @@ export const Route = createFileRoute("/products/$id")({
     await Promise.all([
       context.queryClient.ensureQueryData(singleProductQueryOptions(id)),
       context.queryClient.ensureQueryData(offersQueryOptions()),
+      context.queryClient.ensureQueryData(productsQueryOptions()),
     ]);
   },
   head: () => ({
@@ -82,10 +86,6 @@ function ProductDetailPage() {
       tag: matchedOffer.tag || matchedOffer.discountBadge || "عرض خاص",
       rating: 5.0,
       reviewsCount: 48,
-      prepTime: "١٠ دقائق",
-      calories: "عرض وبكج خاص",
-      spicinessDefault: "بدون شطة",
-      availableSpiciness: ["بدون شطة", "بارد", "متوسط", "حار"],
       extras: [],
       isPopular: true,
     };
@@ -157,9 +157,15 @@ function ProductDetailPage() {
     addToCart(product, quantity, "", selectedExtras, notes);
   };
 
-  // Note: Related products could be fetched separately in a future sprint.
-  // For now we show a link to the menu rather than re-fetching the full catalog.
-  const relatedProducts: import("@/types/product").Product[] = [];
+  const { data: allProducts = [] } = useProducts();
+
+  const sameCategoryProducts = allProducts.filter(
+    (p) => p.id !== product.id && (product.category === "boxes" || p.category === product.category)
+  );
+  const otherCategoryProducts = allProducts.filter(
+    (p) => p.id !== product.id && p.category !== product.category
+  );
+  const relatedProducts = [...sameCategoryProducts, ...otherCategoryProducts].slice(0, 4);
 
 
   return (
@@ -192,7 +198,18 @@ function ProductDetailPage() {
           <div className="lg:col-span-6">
             <div className="sticky top-24 space-y-4">
               <div className="relative aspect-4/3 overflow-hidden rounded-3xl border border-border bg-surface shadow-soft">
-                <img src={product.img} alt={product.name} className="size-full object-cover" />
+                <img
+                  src={getOptimizedImageUrl(product.img, 800)}
+                  srcSet={getImageSrcSet(product.img, [400, 800, 1200])}
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  alt={product.name}
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                  width={800}
+                  height={600}
+                  className="size-full object-cover"
+                />
 
                 {product.tag && (
                   <span className="absolute start-4 top-4 rounded-full bg-chili px-3.5 py-1 text-xs font-bold text-chili-foreground shadow-md">

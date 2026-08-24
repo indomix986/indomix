@@ -7,13 +7,14 @@ import {
   Minus,
   Sparkles,
   MessageCircle,
-  Flame,
   MapPin,
 } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { useStore } from "@/context/StoreContext";
 import { useRestaurantSettings } from "@/hooks/use-catalog";
+import { getOptimizedImageUrl } from "@/lib/image-utils";
+import { generateOrderReference } from "@/lib/order-utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/cart")({
@@ -38,6 +39,7 @@ export function CartPage() {
   const { data: settings } = useRestaurantSettings();
 
   // Checkout Form State
+  const [orderRef] = useState<string>(() => generateOrderReference());
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
@@ -68,6 +70,7 @@ export function CartPage() {
     const whatsappNumber = settings?.whatsapp || "201015770734";
 
     let msg = `*طلب جديد من موقع إندومكس*\n`;
+    msg += `🆔 *رقم الطلب:* ${orderRef}\n`;
     msg += `-------------------------\n`;
     msg += `👤 *الاسم:* ${customerName.trim()}\n`;
     msg += `📱 *الهاتف:* ${customerPhone.trim()}\n`;
@@ -81,7 +84,6 @@ export function CartPage() {
 
     cart.forEach((item, idx) => {
       msg += `${idx + 1}. *${item.product.name}* (الكمية: ${item.quantity})\n`;
-      msg += `   - الشطة: ${item.spiciness}\n`;
       if (item.selectedExtras && item.selectedExtras.length > 0) {
         const extrasList = item.selectedExtras.map((e) => e.name).join("، ");
         msg += `   - إضافات: ${extrasList}\n`;
@@ -98,9 +100,9 @@ export function CartPage() {
     msg += `*الإجمالي النهائي:* ${totalAmount} ج.م`;
 
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`;
-    window.open(whatsappUrl, "_blank");
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
 
-    toast.success("تم تجهيز الطلب وفتح محادثة واتساب لإرساله للمطعم!");
+    toast.success(`تم تجهيز الطلب (${orderRef}) وفتح محادثة واتساب لإرساله للمطعم!`);
   };
 
   return (
@@ -167,8 +169,12 @@ export function CartPage() {
                           search={{ from: "cart" }}
                         >
                           <img
-                            src={item.product.img}
+                            src={getOptimizedImageUrl(item.product.img, 200)}
                             alt={item.product.name}
+                            loading="lazy"
+                            decoding="async"
+                            width={72}
+                            height={72}
                             className="size-18 rounded-xl object-cover ring-1 ring-border"
                           />
                         </Link>
@@ -185,11 +191,6 @@ export function CartPage() {
                           </Link>
 
                           <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                            <span className="inline-flex items-center gap-1 rounded-md bg-chili/15 px-2 py-0.5 text-[10px] font-bold text-chili">
-                              <Flame className="size-3" />
-                              {item.spiciness}
-                            </span>
-
                             {item.selectedExtras.length > 0 && (
                               <span className="text-[10px] text-muted-foreground">
                                 + {item.selectedExtras.map((e) => e.name).join("، ")}
@@ -270,6 +271,7 @@ export function CartPage() {
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
                         placeholder="أدخل اسم المستلم"
+                        maxLength={100}
                         className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs outline-none focus:border-primary"
                       />
                     </div>
@@ -284,6 +286,7 @@ export function CartPage() {
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(e.target.value)}
                         placeholder="010XXXXXXXX"
+                        maxLength={15}
                         className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs outline-none focus:border-primary"
                       />
                     </div>
@@ -299,6 +302,7 @@ export function CartPage() {
                       value={deliveryAddress}
                       onChange={(e) => setDeliveryAddress(e.target.value)}
                       placeholder="مثال: المعادي - شارع ٩ - عمارة ١٢ - الدور الثالث شقة ٥"
+                      maxLength={300}
                       className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs outline-none focus:border-primary"
                     />
                   </div>
@@ -312,6 +316,7 @@ export function CartPage() {
                       value={orderNotes}
                       onChange={(e) => setOrderNotes(e.target.value)}
                       placeholder="مثال: رن الجرس مرتين، الصوس في علبة خارجية..."
+                      maxLength={200}
                       className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs outline-none focus:border-primary"
                     />
                   </div>
@@ -350,9 +355,14 @@ export function CartPage() {
               {/* Right Column: Order Summary & Placement */}
               <div className="lg:col-span-5">
                 <div className="sticky top-24 rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-soft space-y-4">
-                  <h2 className="text-base font-extrabold text-foreground border-b border-border/60 pb-3">
-                    ملخص الفاتورة
-                  </h2>
+                  <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                    <h2 className="text-base font-extrabold text-foreground">
+                      ملخص الفاتورة
+                    </h2>
+                    <span className="rounded-lg bg-primary/10 px-2 py-0.5 text-xs font-extrabold text-primary font-mono" dir="ltr">
+                      {orderRef}
+                    </span>
+                  </div>
 
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between">

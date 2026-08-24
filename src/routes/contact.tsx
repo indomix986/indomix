@@ -57,7 +57,7 @@ function ContactPage() {
     const text = `*رسالة تواصل من موقع إندومكس INDOMIX*\n-------------------------\n👤 *الاسم:* ${name.trim()}\n📱 *الهاتف:* ${phone.trim() || "غير محدد"}\n💬 *الرسالة:*\n${message.trim()}`;
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
 
-    window.open(whatsappUrl, "_blank");
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
     toast.success("جاري فتح محادثة الواتساب لإرسال رسالتك...");
   };
 
@@ -164,6 +164,7 @@ function ContactPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="أدخل اسمك"
+                    maxLength={100}
                     className="w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-xs outline-none focus:border-primary"
                   />
                 </div>
@@ -177,6 +178,7 @@ function ContactPage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="010XXXXXXXX"
+                    maxLength={15}
                     className="w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-xs outline-none focus:border-primary"
                   />
                 </div>
@@ -191,6 +193,7 @@ function ContactPage() {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="اكتب استفسارك أو طلبك هنا..."
+                    maxLength={200}
                     className="w-full rounded-xl border border-border bg-surface px-3.5 py-2.5 text-xs outline-none focus:border-primary resize-none"
                   />
                 </div>

@@ -7,7 +7,7 @@ export interface CartItem {
   quantity: number;
   spiciness: string;
   selectedExtras: ExtraOption[];
-  notes?: string;
+  notes?: string | undefined;
   unitPrice: number;
 }
 

@@ -9,10 +9,16 @@ import {
 import type { Product, ExtraOption, Offer } from "@/types/product";
 import type { Database } from "@/types/database";
 
+type DbProduct = Database["public"]["Tables"]["products"]["Row"];
 type DbCategory = Database["public"]["Tables"]["categories"]["Row"];
 type DbExtra = Database["public"]["Tables"]["product_extras"]["Row"];
 type DbOffer = Database["public"]["Tables"]["offers"]["Row"];
 type DbSettings = Database["public"]["Tables"]["restaurant_settings"]["Row"];
+type DbBotFaq = Database["public"]["Tables"]["bot_faq"]["Row"];
+
+type DbProductWithCategory = DbProduct & {
+  categories: { name: string } | null;
+};
 
 export interface RestaurantSettings {
   restaurant_name: string;
@@ -114,7 +120,7 @@ export const categoriesQueryOptions = () =>
           ...categoriesData.map((c) => ({
             id: c.id,
             name: c.name,
-            count: "أصناف متنوعة",
+            count: c.badge_text?.trim() || "أصناف متنوعة",
             img: c.image_url || "/assets/cat-classic.jpg",
           })),
         ];
@@ -143,20 +149,22 @@ export const productsQueryOptions = () =>
           supabase
             .from("products")
             .select("*, categories(name)")
-            .eq("is_available", true),
+            .eq("is_available", true)
+            .returns<DbProductWithCategory[]>(),
           supabase
             .from("product_extras")
             .select("*")
-            .eq("is_available", true),
+            .eq("is_available", true)
+            .returns<DbExtra[]>(),
         ]);
 
-        const dbProducts = (productsRes.data as any[] | null) || [];
+        const dbProducts = productsRes.data || [];
 
         if (productsRes.error || dbProducts.length === 0) {
           return [];
         }
 
-        const dbExtras = (extrasRes.data as DbExtra[] | null) || [];
+        const dbExtras = extrasRes.data || [];
 
         const extrasByProd = dbExtras.reduce<Record<string, ExtraOption[]>>((acc, extra) => {
           if (!extra.product_id) return acc;
@@ -182,10 +190,6 @@ export const productsQueryOptions = () =>
           tag: p.tag || undefined,
           rating: Number(p.rating),
           reviewsCount: p.reviews_count,
-          prepTime: p.prep_time,
-          calories: p.calories,
-          spicinessDefault: p.spiciness_default,
-          availableSpiciness: p.available_spiciness || ["بدون شطة", "بارد", "متوسط", "حار"],
           extras: extrasByProd[p.id] || [],
           isPopular: p.is_popular,
         }));
@@ -218,18 +222,19 @@ export const singleProductQueryOptions = (id: string) =>
             .from("products")
             .select("*, categories(name)")
             .eq("id", id)
-            .maybeSingle(),
+            .maybeSingle<DbProductWithCategory>(),
           supabase
             .from("product_extras")
             .select("*")
             .eq("product_id", id)
-            .eq("is_available", true),
+            .eq("is_available", true)
+            .returns<DbExtra[]>(),
         ]);
 
         if (prodRes.error || !prodRes.data) return null;
 
-        const p = prodRes.data as any;
-        const dbExtras = (extrasRes.data as DbExtra[] | null) || [];
+        const p = prodRes.data;
+        const dbExtras = extrasRes.data || [];
 
         return {
           id: p.id,
@@ -244,10 +249,6 @@ export const singleProductQueryOptions = (id: string) =>
           tag: p.tag || undefined,
           rating: Number(p.rating),
           reviewsCount: p.reviews_count,
-          prepTime: p.prep_time,
-          calories: p.calories,
-          spicinessDefault: p.spiciness_default,
-          availableSpiciness: p.available_spiciness || ["بدون شطة", "بارد", "متوسط", "حار"],
           extras: dbExtras.map((e) => ({
             id: e.id,
             name: e.name,
@@ -326,10 +327,12 @@ export function useBotFaq(options?: { enabled?: boolean }) {
       }
 
       try {
-        const { data, error } = await (supabase.from("bot_faq") as any)
+        const { data, error } = await supabase
+          .from("bot_faq")
           .select("*")
           .eq("is_active", true)
-          .order("display_order", { ascending: true });
+          .order("display_order", { ascending: true })
+          .returns<DbBotFaq[]>();
 
         if (error || !data) {
           return [];

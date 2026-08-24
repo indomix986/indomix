@@ -16,7 +16,7 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     if (isAdminRoute) return;
 
     const lenis = new Lenis({
-      duration: 1.1,
+      duration: 1.0,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
@@ -32,8 +32,6 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     };
 
     gsap.ticker.add(updateTicker);
-    // ✅ Sprint 2 – Step 4.4: Restore lag smoothing (500ms threshold, 33ms frame budget)
-    // lagSmoothing(0) was disabling frame-drop compensation → causing jank on fast scroll
     gsap.ticker.lagSmoothing(500, 33);
 
     return () => {

@@ -9,6 +9,8 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, lazy, Suspense, type ReactNode } from "react";
 
+import cairoArabic400 from "@fontsource/cairo/files/cairo-arabic-400-normal.woff2?url";
+import cairoArabic700 from "@fontsource/cairo/files/cairo-arabic-700-normal.woff2?url";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "../context/AuthContext";
@@ -43,7 +45,9 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
+  if (import.meta.env.DEV) {
+    console.error(error);
+  }
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
@@ -99,14 +103,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      // Critical font: preload woff2 so the browser fetches it early
       {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap",
+        rel: "preload",
+        href: cairoArabic400,
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
       },
+      {
+        rel: "preload",
+        href: cairoArabic700,
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      { rel: "stylesheet", href: appCss },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "preconnect", href: "https://res.cloudinary.com" },
+      { rel: "preconnect", href: "https://i.ibb.co" },
+      { rel: "dns-prefetch", href: "https://res.cloudinary.com" },
+      { rel: "dns-prefetch", href: "https://i.ibb.co" },
     ],
   }),
 

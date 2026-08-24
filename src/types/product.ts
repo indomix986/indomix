@@ -1,7 +1,5 @@
 /**
  * Domain types for product-related data.
- * Extracted from data/products.ts to keep types separate from data.
- * 🔮 Supabase future: these interfaces will map to Supabase table row types.
  */
 
 export interface ExtraOption {
@@ -13,22 +11,19 @@ export interface ExtraOption {
 export interface Product {
   id: string;
   name: string;
-  category: "classic" | "cheese" | "chicken" | "seafood" | "snacks" | "boxes";
+  category: "classic" | "cheese" | "chicken" | "seafood" | "snacks" | "boxes" | string;
   categoryName: string;
   desc: string;
   shortDesc: string;
   price: number;
-  oldPrice?: number | null;
+  oldPrice?: number | null | undefined;
   img: string;
-  tag?: string;
+  tag?: string | undefined;
   rating: number;
   reviewsCount: number;
-  prepTime: string;
-  calories: string;
-  spicinessDefault: string;
-  availableSpiciness: string[];
   extras: ExtraOption[];
-  isPopular?: boolean;
+  isPopular?: boolean | undefined;
+  isAvailable?: boolean | undefined;
 }
 
 export interface Offer {

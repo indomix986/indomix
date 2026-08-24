@@ -2,6 +2,45 @@
 @source "../src";
 @import "tw-animate-css";
 
+/* Cairo font-face — loaded non-blocking (woff2 preloaded in <head>) */
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('@fontsource/cairo/files/cairo-arabic-400-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF,U+0750-077F,U+FB50-FDFF,U+FE70-FEFC;
+}
+
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('@fontsource/cairo/files/cairo-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2C60-2C7F,U+FEFF,U+FFFD;
+}
+
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url('@fontsource/cairo/files/cairo-arabic-700-normal.woff2') format('woff2');
+  unicode-range: U+0600-06FF,U+0750-077F,U+FB50-FDFF,U+FE70-FEFC;
+}
+
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url('@fontsource/cairo/files/cairo-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+2C60-2C7F,U+FEFF,U+FFFD;
+}
+
+
+
 @custom-variant dark (&:is(.dark *));
 
 /*
@@ -77,13 +116,13 @@
   --secondary: oklch(0.28 0.016 260);
   --secondary-foreground: oklch(0.97 0.005 90);
   --muted: oklch(0.27 0.014 260);
-  --muted-foreground: oklch(0.72 0.015 260);
+  --muted-foreground: oklch(0.86 0.01 260);
   --accent: oklch(0.58 0.23 27);
-  --accent-foreground: oklch(0.98 0.01 90);
+  --accent-foreground: oklch(0.99 0.005 90);
   --destructive: oklch(0.58 0.23 27);
-  --destructive-foreground: oklch(0.98 0.01 90);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 14%);
+  --destructive-foreground: oklch(0.99 0.005 90);
+  --border: oklch(1 0 0 / 14%);
+  --input: oklch(1 0 0 / 18%);
   --ring: oklch(0.83 0.17 84);
 
   /* Two-color discipline: gold family for primary, chili red for accents only. */
@@ -170,6 +209,31 @@ html.lenis body {
   overflow: hidden;
 }
 
-.lenis.lenis-smooth iframe {
-  pointer-events: none;
+@keyframes kodo-shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.animate-kodo-gradient {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.animate-kodo-gradient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(1 0 0 / 0.12) 50%,
+    transparent 100%
+  );
+  animation: kodo-shimmer 2s linear infinite;
+  will-change: transform;
 }

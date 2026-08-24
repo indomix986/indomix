@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Heart, Plus, Star } from "lucide-react";
 import type { Product } from "@/types/product";
 import { useStore } from "@/context/StoreContext";
+import { getOptimizedImageUrl, getImageSrcSet } from "@/lib/image-utils";
 
 interface ProductCardProps {
   product: Product;
@@ -21,12 +22,14 @@ export function ProductCard({ product }: ProductCardProps) {
           className="block size-full"
         >
           <img
-            src={product.img}
+            src={getOptimizedImageUrl(product.img, 400)}
+            srcSet={getImageSrcSet(product.img, [200, 400, 600])}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             alt={product.name}
             loading="lazy"
             decoding="async"
-            width={600}
-            height={450}
+            width={400}
+            height={300}
             className="aspect-[4/3] size-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </Link>
@@ -45,18 +48,18 @@ export function ProductCard({ product }: ProductCardProps) {
             e.stopPropagation();
             toggleFavorite(product.id, product.name);
           }}
-          className={`absolute end-2 top-2 grid size-8 place-items-center rounded-full backdrop-blur-md transition-all ${
+          className={`absolute end-2 top-2 grid size-8 place-items-center rounded-full transition-all ${
             favorite
               ? "bg-chili text-chili-foreground shadow-md scale-110"
-              : "bg-background/70 text-foreground/80 hover:bg-background hover:text-chili"
+              : "bg-background/90 text-foreground/80 hover:bg-background hover:text-chili shadow-xs"
           }`}
         >
           <Heart className={`size-4 ${favorite ? "fill-current" : ""}`} />
         </button>
 
-        <div className="absolute bottom-2 start-2 flex items-center gap-1 rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-bold text-foreground backdrop-blur">
+        <div className="absolute bottom-2 start-2 flex items-center gap-1 rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-bold text-foreground shadow-xs">
           <Star className="size-3 fill-primary text-primary" />
-          <span>{product.rating}</span>
+          <span>{product.rating != null ? Number(product.rating).toFixed(1) : "5.0"}</span>
         </div>
       </div>
 

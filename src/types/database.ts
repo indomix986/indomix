@@ -22,6 +22,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       categories: {
         Row: {
@@ -29,6 +30,7 @@ export interface Database {
           name: string;
           display_order: number;
           image_url: string | null;
+          badge_text: string | null;
           is_active: boolean;
         };
         Insert: {
@@ -36,6 +38,7 @@ export interface Database {
           name: string;
           display_order?: number;
           image_url?: string | null;
+          badge_text?: string | null;
           is_active?: boolean;
         };
         Update: {
@@ -43,8 +46,10 @@ export interface Database {
           name?: string;
           display_order?: number;
           image_url?: string | null;
+          badge_text?: string | null;
           is_active?: boolean;
         };
+        Relationships: [];
       };
       products: {
         Row: {
@@ -59,10 +64,6 @@ export interface Database {
           tag: string | null;
           rating: number;
           reviews_count: number;
-          prep_time: string;
-          calories: string;
-          spiciness_default: string;
-          available_spiciness: string[];
           is_popular: boolean;
           is_available: boolean;
           created_at: string;
@@ -80,10 +81,6 @@ export interface Database {
           tag?: string | null;
           rating?: number;
           reviews_count?: number;
-          prep_time?: string;
-          calories?: string;
-          spiciness_default?: string;
-          available_spiciness?: string[];
           is_popular?: boolean;
           is_available?: boolean;
           created_at?: string;
@@ -101,15 +98,20 @@ export interface Database {
           tag?: string | null;
           rating?: number;
           reviews_count?: number;
-          prep_time?: string;
-          calories?: string;
-          spiciness_default?: string;
-          available_spiciness?: string[];
           is_popular?: boolean;
           is_available?: boolean;
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       product_extras: {
         Row: {
@@ -133,6 +135,15 @@ export interface Database {
           price?: number;
           is_available?: boolean;
         };
+        Relationships: [
+          {
+            foreignKeyName: "product_extras_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       offers: {
         Row: {
@@ -161,7 +172,7 @@ export interface Database {
           old_price?: number | null;
           image_url: string;
           associated_product_id?: string | null;
-          valid_until: string;
+          valid_until?: string;
           is_active?: boolean;
           created_at?: string;
         };
@@ -180,6 +191,7 @@ export interface Database {
           is_active?: boolean;
           created_at?: string;
         };
+        Relationships: [];
       };
       restaurant_settings: {
         Row: {
@@ -197,6 +209,7 @@ export interface Database {
           value?: Json;
           updated_at?: string;
         };
+        Relationships: [];
       };
       bot_faq: {
         Row: {
@@ -229,13 +242,50 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
+      reviews_gallery: {
+        Row: {
+          id: string;
+          image_url: string;
+          display_order: number;
+          is_active: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Insert: {
+          id?: string;
+          image_url: string;
+          display_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          image_url?: string;
+          display_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+    };
+    Views: {
+      [_ in never]: never;
     };
     Functions: {
       is_admin: {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
       };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
     };
   };
 }

@@ -46,6 +46,27 @@ export function Footer() {
           </a>
         </div>
         <p className="text-xs text-muted-foreground">© ٢٠٢٦ INDOMIX. كل الحقوق محفوظة.</p>
+
+        <div className="pt-2 border-t border-border/40">
+          <a
+            href={`https://wa.me/201028551063?text=${encodeURIComponent(
+              "مرحباً KODO، رأيت موقع إندومكس وأرغب في الاستفسار عن تصميم وتطوير موقع إلكتروني احترافي مشابه."
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            dir="ltr"
+            aria-label="تواصل مع KODO لطلب تصميم موقع مشابه"
+            className="group inline-flex items-center gap-1.5 rounded-full border border-border/50 bg-background/50 px-3.5 py-1.5 text-xs font-semibold text-muted-foreground transition-all duration-300 hover:border-primary/40 hover:bg-surface hover:shadow-soft hover:scale-105"
+          >
+            <span className="text-[11px]">Built by</span>
+            <span className="font-extrabold tracking-wider bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 bg-clip-text text-transparent animate-kodo-gradient drop-shadow-[0_0_8px_rgba(245,158,11,0.3)]">
+              KODO
+            </span>
+            <span className="text-[10px] text-primary/70 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5">
+              ↗
+            </span>
+          </a>
+        </div>
       </div>
     </footer>
   );
