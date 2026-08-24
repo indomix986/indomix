@@ -47,3 +47,8 @@ chrome.log
 trace_scroll.json
 scratch_chrome/
 audit-report.json
+
+# Ignore all scratch folders and contents
+scratch/
+scratch_*
+scratch*/

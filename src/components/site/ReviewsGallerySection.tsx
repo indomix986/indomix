@@ -186,8 +186,7 @@ export function ReviewsGallerySection() {
                             srcSet={`${getOptimizedImageUrl(item.image_url, 300)} 300w, ${getOptimizedImageUrl(item.image_url, 480)} 480w, ${getOptimizedImageUrl(item.image_url, 640)} 640w`}
                             sizes="(max-width: 640px) 70vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                             alt={`تقييم عميل #${idx + 1}`}
-                            loading={isFirstVisible ? "eager" : "lazy"}
-                            fetchPriority={isFirstVisible ? "low" : undefined}
+                            loading="lazy"
                             decoding="async"
                             className="relative z-10 size-full object-contain p-2 transition-transform duration-500 group-hover:scale-105"
                           />

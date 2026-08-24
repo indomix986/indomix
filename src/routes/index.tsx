@@ -11,13 +11,17 @@ import {
   ShoppingBag,
   ArrowLeft,
 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, lazy, Suspense } from "react";
 
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { ProductCard } from "@/components/site/ProductCard";
 import { OfferCard } from "@/components/site/OfferCard";
-import { ReviewsGallerySection } from "@/components/site/ReviewsGallerySection";
+const ReviewsGallerySection = lazy(() =>
+  import("@/components/site/ReviewsGallerySection").then((m) => ({
+    default: m.ReviewsGallerySection,
+  })),
+);
 import {
   CategoryCardSkeleton,
   ProductCardSkeleton,
@@ -77,7 +81,6 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const [search, setSearch] = useState("");
-  const [isHeroLoaded, setIsHeroLoaded] = useState(false);
   const navigate = useNavigate();
   const { addToCart } = useStore();
   const mainRef = useRef<HTMLDivElement>(null);
@@ -243,15 +246,7 @@ function Index() {
               fetchPriority="high"
               loading="eager"
               decoding="async"
-              onLoad={() => setIsHeroLoaded(true)}
-              ref={(el) => {
-                if (el?.complete) setIsHeroLoaded(true);
-              }}
-              className={`hero-img size-full object-cover transition-all duration-700 ease-out will-change-transform ${
-                isHeroLoaded
-                  ? "opacity-100 scale-100 blur-0"
-                  : "opacity-0 scale-105 blur-xs"
-              }`}
+              className="hero-img size-full object-cover will-change-transform"
             />
           </div>
           <div className="absolute inset-0 -z-10 bg-veil" />
@@ -450,7 +445,9 @@ function Index() {
       </main>
 
       {/* Customer Reviews Gallery Slider */}
-      <ReviewsGallerySection />
+      <Suspense fallback={null}>
+        <ReviewsGallerySection />
+      </Suspense>
 
       {/* Shared Footer */}
       <Footer />

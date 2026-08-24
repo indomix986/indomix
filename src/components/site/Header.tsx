@@ -25,12 +25,20 @@ export function Header() {
 
   useEffect(() => {
     setMounted(true);
+    let rafId: number;
     const handleScroll = () => {
       setScrolled(window.scrollY > 15);
     };
-    handleScroll();
+    rafId = requestAnimationFrame(() => {
+      if (window.scrollY > 15) {
+        setScrolled(true);
+      }
+    });
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   return (
