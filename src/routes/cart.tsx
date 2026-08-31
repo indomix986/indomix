@@ -8,6 +8,10 @@ import {
   Sparkles,
   MessageCircle,
   MapPin,
+  Truck,
+  Bike,
+  Store,
+  Info,
 } from "lucide-react";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
@@ -31,6 +35,7 @@ export const Route = createFileRoute("/cart")({
 });
 
 type PaymentOption = "cash_on_delivery" | "instapay" | "vodafone_cash";
+type DeliveryType = "delivery" | "takeaway";
 
 export function CartPage() {
   const { cart, removeFromCart, updateQuantity, clearCart, totalItems, subtotal, deliveryFee } =
@@ -45,8 +50,10 @@ export function CartPage() {
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [orderNotes, setOrderNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentOption>("cash_on_delivery");
+  const [deliveryType, setDeliveryType] = useState<DeliveryType>("delivery");
 
-  const totalAmount = subtotal + deliveryFee;
+  const effectiveDeliveryFee = deliveryType === "takeaway" ? 0 : deliveryFee;
+  const totalAmount = subtotal + effectiveDeliveryFee;
 
   const paymentLabels: Record<PaymentOption, string> = {
     cash_on_delivery: "كاش عند الاستلام",
@@ -62,8 +69,14 @@ export function CartPage() {
       return;
     }
 
-    if (!customerName.trim() || !customerPhone.trim() || !deliveryAddress.trim()) {
-      toast.error("يرجى ملء الاسم، رقم الهاتف، وعنوان التوصيل");
+    const isDelivery = deliveryType === "delivery";
+
+    if (!customerName.trim() || !customerPhone.trim() || (isDelivery && !deliveryAddress.trim())) {
+      toast.error(
+        isDelivery
+          ? "يرجى ملء الاسم، رقم الهاتف، وعنوان التوصيل"
+          : "يرجى ملء الاسم ورقم الهاتف",
+      );
       return;
     }
 
@@ -74,7 +87,12 @@ export function CartPage() {
     msg += `-------------------------\n`;
     msg += `👤 *الاسم:* ${customerName.trim()}\n`;
     msg += `📱 *الهاتف:* ${customerPhone.trim()}\n`;
-    msg += `📍 *العنوان:* ${deliveryAddress.trim()}\n`;
+    msg += `🚗 *نوع الاستلام:* ${isDelivery ? "🛵 توصيل مع مندوب" : "🏪 استلام من الفرع (Takeaway)"}\n`;
+    if (isDelivery) {
+      msg += `📍 *عنوان التوصيل:* ${deliveryAddress.trim()}\n`;
+    } else {
+      msg += `🏪 *الاستلام:* من الفرع مباشرة\n`;
+    }
     msg += `💳 *طريقة الدفع:* ${paymentLabels[paymentMethod]}\n`;
     if (orderNotes.trim()) {
       msg += `📝 *ملاحظات:* ${orderNotes.trim()}\n`;
@@ -96,8 +114,8 @@ export function CartPage() {
 
     msg += `-------------------------\n`;
     msg += `مجموع الأصناف: ${subtotal} ج.م\n`;
-    msg += `رسوم التوصيل: ${deliveryFee} ج.م\n`;
-    msg += `*الإجمالي النهائي:* ${totalAmount} ج.م`;
+    msg += `رسوم التوصيل: ${isDelivery ? "يُحدَّد بعد معرفة العنوان" : "بدون رسوم (Takeaway)"}\n`;
+    msg += `*إجمالي الأصناف:* ${subtotal} ج.م`;
 
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
@@ -251,12 +269,57 @@ export function CartPage() {
                   ))}
                 </div>
 
+                {/* Delivery Type Selector */}
+                <div className="rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-soft space-y-4">
+                  <div className="flex items-center gap-2 border-b border-border/60 pb-3">
+                    <Truck className="size-4 text-primary" />
+                    <h2 className="text-sm font-extrabold text-foreground">طريقة الاستلام</h2>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryType("delivery")}
+                      className={`rounded-2xl border p-3.5 text-center transition-all ${
+                        deliveryType === "delivery"
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-surface text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <Bike className="mx-auto size-6 mb-1.5" />
+                      <span className="block text-xs font-bold">توصيل مع مندوب</span>
+                      <span className="block text-[10px] mt-0.5 opacity-70">يُحدَّد عبر الواتساب</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryType("takeaway")}
+                      className={`rounded-2xl border p-3.5 text-center transition-all ${
+                        deliveryType === "takeaway"
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-surface text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <Store className="mx-auto size-6 mb-1.5" />
+                      <span className="block text-xs font-bold">استلام من الفرع</span>
+                      <span className="block text-[10px] mt-0.5 opacity-70">Takeaway — بدون رسوم</span>
+                    </button>
+                  </div>
+
+                  {deliveryType === "delivery" && (
+                    <div className="flex items-start gap-2 rounded-xl border border-border/50 bg-surface px-3 py-2.5">
+                      <Info className="size-3.5 text-muted-foreground shrink-0 mt-0.5" />
+                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                        سيتم تحديد رسوم التوصيل بعد معرفة عنوانك عبر محادثة الواتساب.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 {/* Delivery Information Form */}
                 <div className="rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-soft space-y-4">
                   <div className="flex items-center justify-between border-b border-border/60 pb-3">
                     <h2 className="text-sm font-extrabold text-foreground flex items-center gap-2">
                       <MapPin className="size-4 text-primary" />
-                      <span>بيانات التوصيل والتواصل</span>
+                      <span>بيانات التواصل والطلب</span>
                     </h2>
                   </div>
 
@@ -278,7 +341,7 @@ export function CartPage() {
 
                     <div>
                       <label className="block text-xs font-bold text-foreground mb-1">
-                        رقم الهاتف للتواصل والدليفري *
+                        رقم الهاتف للتواصل *
                       </label>
                       <input
                         type="tel"
@@ -292,20 +355,29 @@ export function CartPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-foreground mb-1">
-                      عنوان التوصيل بالتفصيل (المنطقة، الشارع، رقم العمارة، الشقة) *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={deliveryAddress}
-                      onChange={(e) => setDeliveryAddress(e.target.value)}
-                      placeholder="مثال: المعادي - شارع ٩ - عمارة ١٢ - الدور الثالث شقة ٥"
-                      maxLength={300}
-                      className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs outline-none focus:border-primary"
-                    />
-                  </div>
+                  {deliveryType === "delivery" ? (
+                    <div>
+                      <label className="block text-xs font-bold text-foreground mb-1">
+                        عنوان التوصيل بالتفصيل (المنطقة، الشارع، رقم العمارة، الشقة) *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={deliveryAddress}
+                        onChange={(e) => setDeliveryAddress(e.target.value)}
+                        placeholder="مثال: المعادي - شارع ٩ - عمارة ١٢ - الدور الثالث شقة ٥"
+                        maxLength={300}
+                        className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs outline-none focus:border-primary"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3">
+                      <Store className="size-4 text-primary shrink-0 mt-0.5" />
+                      <p className="text-xs text-foreground/80 leading-relaxed">
+                        سيتم تجهيز طلبك للاستلام من الفرع. سنتواصل معك على الهاتف عند جاهزية طلبك.
+                      </p>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-xs font-bold text-foreground mb-1">
@@ -375,16 +447,36 @@ export function CartPage() {
                       <span className="font-bold">{subtotal} ج.م</span>
                     </div>
 
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">رسوم التوصيل:</span>
-                      <span className="font-bold">
-                        {deliveryFee === 0 ? "مجاني" : `${deliveryFee} ج.م`}
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">
+                        {deliveryType === "takeaway" ? "نوع الاستلام:" : "رسوم التوصيل:"}
+                      </span>
+                      <span className="font-bold flex items-center gap-1">
+                        {deliveryType === "takeaway" ? (
+                          <>
+                            <Store className="size-3.5" />
+                            <span>Takeaway (مجاني)</span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground font-medium">يُحدَّد عبر الواتساب</span>
+                        )}
                       </span>
                     </div>
 
+                    {deliveryType === "delivery" && (
+                      <div className="flex items-start gap-1.5">
+                        <Info className="size-3 text-muted-foreground shrink-0 mt-0.5" />
+                        <p className="text-[10px] text-muted-foreground leading-relaxed">
+                          سيتم تحديد رسوم التوصيل بعد معرفة عنوانك عبر الواتساب.
+                        </p>
+                      </div>
+                    )}
+
                     <div className="border-t border-border/60 pt-3 flex justify-between text-base font-extrabold">
-                      <span>الإجمالي النهائي:</span>
-                      <span className="text-primary">{totalAmount} ج.م</span>
+                      <span>
+                        {deliveryType === "delivery" ? "مجموع الأصناف:" : "الإجمالي النهائي:"}
+                      </span>
+                      <span className="text-primary">{subtotal} ج.م</span>
                     </div>
                   </div>
 
