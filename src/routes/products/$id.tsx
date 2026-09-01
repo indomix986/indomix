@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Heart,
   ShoppingBag,
@@ -98,6 +98,25 @@ function ProductDetailPage() {
   const [notes, setNotes] = useState("");
   const [quantity, setQuantity] = useState(1);
 
+  // Image load state — resets on product change to prevent stale-image flash
+  const [isImgLoaded, setIsImgLoaded] = useState(false);
+  useEffect(() => {
+    setIsImgLoaded(false);
+  }, [product?.img]);
+
+  // Scroll to top on every product navigation — must go through Lenis, not window.scrollTo
+  useEffect(() => {
+    if (window.lenis) {
+      window.lenis.scrollTo(0, { immediate: true });
+    } else {
+      // Fallback: Lenis not active (admin route, SSR edge, etc.)
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+    }
+  }, [id]);
+
+  const { data: allProducts = [] } = useProducts();
+
   const isSkeleton = (isProductLoading || isOffersLoading) && !product;
 
   if (isSkeleton) {
@@ -157,8 +176,6 @@ function ProductDetailPage() {
     addToCart(product, quantity, "", selectedExtras, notes);
   };
 
-  const { data: allProducts = [] } = useProducts();
-
   const sameCategoryProducts = allProducts.filter(
     (p) => p.id !== product.id && (product.category === "boxes" || p.category === product.category)
   );
@@ -197,8 +214,33 @@ function ProductDetailPage() {
           {/* Product Image & Badges */}
           <div className="lg:col-span-6">
             <div className="sticky top-24 space-y-4">
-              <div className="relative aspect-4/3 overflow-hidden rounded-3xl border border-border bg-surface shadow-soft">
+              {/* Image container — key forces full remount on product change, kills stale image instantly */}
+              <div
+                key={product.id}
+                className="relative w-full max-w-md mx-auto overflow-hidden rounded-3xl border border-border shadow-soft"
+                style={{ minHeight: "280px", maxHeight: "400px" }}
+              >
+                {/* Shimmer skeleton shown until new image loads */}
+                {!isImgLoaded && (
+                  <div className="absolute inset-0 z-30 rounded-3xl bg-surface animate-pulse" />
+                )}
+
+                {/* Blurred ambient glow layer */}
                 <img
+                  key={`bg-${product.img}`}
+                  src={getOptimizedImageUrl(product.img, 800)}
+                  alt=""
+                  aria-hidden="true"
+                  loading="eager"
+                  decoding="async"
+                  className="absolute inset-0 size-full object-cover blur-3xl opacity-50 scale-150 saturate-150 pointer-events-none select-none"
+                />
+                {/* Subtle dark overlay for depth */}
+                <div className="absolute inset-0 bg-black/20" />
+
+                {/* Main image — aspect ratio preserved, fades in on load */}
+                <img
+                  key={`main-${product.img}`}
                   src={getOptimizedImageUrl(product.img, 800)}
                   srcSet={getImageSrcSet(product.img, [400, 800, 1200])}
                   sizes="(max-width: 1024px) 100vw, 50vw"
@@ -208,11 +250,15 @@ function ProductDetailPage() {
                   decoding="async"
                   width={800}
                   height={600}
-                  className="size-full object-cover"
+                  onLoad={() => setIsImgLoaded(true)}
+                  className={`relative z-10 w-full h-auto object-contain drop-shadow-2xl transition-opacity duration-300 ${
+                    isImgLoaded ? "opacity-100" : "opacity-0"
+                  }`}
+                  style={{ maxHeight: "380px", minHeight: "200px" }}
                 />
 
                 {product.tag && (
-                  <span className="absolute start-4 top-4 rounded-full bg-chili px-3.5 py-1 text-xs font-bold text-chili-foreground shadow-md">
+                  <span className="absolute start-4 top-4 z-20 rounded-full bg-chili px-3.5 py-1 text-xs font-bold text-chili-foreground shadow-md">
                     {product.tag}
                   </span>
                 )}
@@ -221,7 +267,7 @@ function ProductDetailPage() {
                   type="button"
                   aria-label={favorite ? "إزالة من المفضلة" : "إضافة إلى المفضلة"}
                   onClick={() => toggleFavorite(product.id)}
-                  className={`absolute end-4 top-4 grid size-10 place-items-center rounded-full backdrop-blur-md transition-all ${
+                  className={`absolute end-4 top-4 z-20 grid size-10 place-items-center rounded-full backdrop-blur-md transition-all ${
                     favorite
                       ? "bg-chili text-chili-foreground shadow-md scale-110"
                       : "bg-background/80 text-foreground/80 hover:text-chili hover:bg-background"

@@ -7,6 +7,13 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+// Extend Window type to expose lenis instance globally
+declare global {
+  interface Window {
+    lenis?: Lenis;
+  }
+}
+
 export function SmoothScrollProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -25,6 +32,9 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
       touchMultiplier: 1.5,
     });
 
+    // Expose instance globally so routes can call window.lenis?.scrollTo(0)
+    window.lenis = lenis;
+
     lenis.on("scroll", ScrollTrigger.update);
 
     const updateTicker = (time: number) => {
@@ -37,6 +47,7 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     return () => {
       gsap.ticker.remove(updateTicker);
       lenis.destroy();
+      window.lenis = undefined;
     };
   }, []);
 

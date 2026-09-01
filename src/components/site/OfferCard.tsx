@@ -54,7 +54,7 @@ export function OfferCard({ offer }: OfferCardProps) {
             decoding="async"
             width={400}
             height={300}
-            className="aspect-[4/3] size-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </Link>
 
