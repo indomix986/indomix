@@ -5,6 +5,7 @@ import type { Database } from "@/types/database";
 import type { Product } from "@/types/product";
 import { useCreateOffer, useUpdateOffer } from "@/hooks/admin/use-admin-offers";
 import { SmartPriceSection } from "../ProductsTab/SmartPriceSection";
+import { AdminImageUploader } from "@/components/admin/AdminImageUploader";
 
 type DbOffer = Database["public"]["Tables"]["offers"]["Row"];
 
@@ -14,11 +15,7 @@ interface OfferModalProps {
   onClose: () => void;
 }
 
-export function OfferModal({
-  offer,
-  products,
-  onClose,
-}: OfferModalProps) {
+export function OfferModal({ offer, products, onClose }: OfferModalProps) {
   const isEditing = Boolean(offer);
   const createMutation = useCreateOffer();
   const updateMutation = useUpdateOffer();
@@ -27,16 +24,14 @@ export function OfferModal({
   const [tag, setTag] = useState(offer?.tag || "العرض الأقوى");
   const [discountBadge, setDiscountBadge] = useState(offer?.discount_badge || "وفر ٥٠ ج.م");
   const [description, setDescription] = useState(offer?.description || "");
-  const [itemsText, setItemsText] = useState(
-    offer ? (offer.items || []).join("\n") : ""
-  );
+  const [itemsText, setItemsText] = useState(offer ? (offer.items || []).join("\n") : "");
   const [price, setPrice] = useState(offer ? Number(offer.price) : 199);
   const [oldPrice, setOldPrice] = useState<number | undefined>(
-    offer?.old_price ? Number(offer.old_price) : 250
+    offer?.old_price ? Number(offer.old_price) : 250,
   );
   const [imageUrl, setImageUrl] = useState(offer?.image_url || "/assets/hero-noodles.jpg");
   const [associatedProductId, setAssociatedProductId] = useState(
-    offer?.associated_product_id || products[0]?.id || ""
+    offer?.associated_product_id || products[0]?.id || "",
   );
   const [validUntil, setValidUntil] = useState(offer?.valid_until || "عرض ساري هذا الأسبوع");
   const [isActive, setIsActive] = useState(offer?.is_active ?? true);
@@ -177,16 +172,14 @@ export function OfferModal({
               }}
             />
 
-            <div>
-              <label className="block font-bold mb-1">رابط صورة العرض *</label>
-              <input
-                type="text"
-                required
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="w-full rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-primary"
-              />
-            </div>
+            <AdminImageUploader
+              entityType="offers"
+              entityId={offer?.id || "new"}
+              imageUrl={imageUrl}
+              label="صورة العرض *"
+              onImageUploaded={(newUrl) => setImageUrl(newUrl)}
+              onUrlChange={(newUrl) => setImageUrl(newUrl)}
+            />
 
             <div>
               <label className="block font-bold mb-1">وصف العرض *</label>
@@ -267,11 +260,7 @@ export function OfferModal({
             disabled={isPending}
             className="rounded-xl bg-heat px-5 py-2 text-xs font-bold text-primary-foreground shadow-heat disabled:opacity-50 transition-transform hover:scale-105"
           >
-            {isPending
-              ? "جاري الحفظ..."
-              : isEditing
-                ? "حفظ التعديلات"
-                : "إنشاء العرض"}
+            {isPending ? "جاري الحفظ..." : isEditing ? "حفظ التعديلات" : "إنشاء العرض"}
           </button>
         </div>
       </div>

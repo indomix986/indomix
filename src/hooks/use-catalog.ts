@@ -115,13 +115,13 @@ export const categoriesQueryOptions = () =>
             id: "all",
             name: "الكل",
             count: `${categoriesData.length} أصناف`,
-            img: categoriesData[0]?.image_url || "/assets/cat-classic.jpg",
+            img: categoriesData[0]?.image_url || "",
           },
           ...categoriesData.map((c) => ({
             id: c.id,
             name: c.name,
             count: c.badge_text?.trim() || "أصناف متنوعة",
-            img: c.image_url || "/assets/cat-classic.jpg",
+            img: c.image_url || "",
           })),
         ];
       } catch {

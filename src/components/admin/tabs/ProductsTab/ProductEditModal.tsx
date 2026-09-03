@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Edit2, Trash2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import type { Product, ProductSize } from "@/types/product";
+import type { Json } from "@/types/database";
 import {
   useUpdateProduct,
   useCreateProductExtra,
@@ -9,6 +10,7 @@ import {
 } from "@/hooks/admin/use-admin-products";
 import { SmartPriceSection } from "./SmartPriceSection";
 import { ProductSizesSection } from "./ProductSizesSection";
+import { ProductImageUploader } from "./ProductImageUploader";
 
 interface CategoryOption {
   id: string;
@@ -21,11 +23,7 @@ interface ProductEditModalProps {
   onClose: () => void;
 }
 
-export function ProductEditModal({
-  product,
-  categories,
-  onClose,
-}: ProductEditModalProps) {
+export function ProductEditModal({ product, categories, onClose }: ProductEditModalProps) {
   const updateMutation = useUpdateProduct();
   const createExtraMutation = useCreateProductExtra();
   const deleteExtraMutation = useDeleteProductExtra();
@@ -40,7 +38,9 @@ export function ProductEditModal({
   const [shortDescription, setShortDescription] = useState(product.shortDesc);
   const [description, setDescription] = useState(product.desc);
   const [isPopular, setIsPopular] = useState(Boolean(product.isPopular));
-  const [isAvailable, setIsAvailable] = useState((product as any).isAvailable !== false);
+  const [isAvailable, setIsAvailable] = useState(
+    "isAvailable" in product ? Boolean(product.isAvailable) : true,
+  );
 
   // Multiple sizes state
   const [hasMultipleSizes, setHasMultipleSizes] = useState<boolean>(
@@ -74,8 +74,7 @@ export function ProductEditModal({
 
     const defaultSize = sizes.find((s) => s.isDefault) || sizes[0];
     const finalPrice = hasMultipleSizes && defaultSize ? defaultSize.price : price;
-    const finalOldPrice =
-      hasMultipleSizes && defaultSize ? defaultSize.oldPrice : oldPrice || null;
+    const finalOldPrice = hasMultipleSizes && defaultSize ? defaultSize.oldPrice : oldPrice || null;
 
     try {
       await updateMutation.mutateAsync({
@@ -92,7 +91,7 @@ export function ProductEditModal({
           description,
           is_popular: isPopular,
           is_available: isAvailable,
-          sizes: (hasMultipleSizes ? sizes : []) as any,
+          sizes: (hasMultipleSizes ? sizes : []) as unknown as Json,
         },
       });
       toast.success("تم تحديث الوجبة بنجاح");
@@ -200,16 +199,14 @@ export function ProductEditModal({
               />
             )}
 
-            <div>
-              <label className="block font-bold mb-1">رابط الصورة (Image URL) *</label>
-              <input
-                type="text"
-                required
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="w-full rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-primary"
-              />
-            </div>
+            <ProductImageUploader
+              productId={product.id}
+              imageUrl={imageUrl}
+              onImageUploaded={(newUrl) => {
+                setImageUrl(newUrl);
+              }}
+              onUrlChange={(newUrl) => setImageUrl(newUrl)}
+            />
 
             <div>
               <label className="block font-bold mb-1">الوصف المختصر</label>
@@ -232,32 +229,32 @@ export function ProductEditModal({
               />
             </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block font-bold mb-1">الشارة الترويجية (Tag)</label>
-              <input
-                type="text"
-                value={tag}
-                onChange={(e) => setTag(e.target.value)}
-                placeholder="الأكثر طلبًا / جديد"
-                className="w-full rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-primary"
-              />
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block font-bold mb-1">الشارة الترويجية (Tag)</label>
+                <input
+                  type="text"
+                  value={tag}
+                  onChange={(e) => setTag(e.target.value)}
+                  placeholder="الأكثر طلبًا / جديد"
+                  className="w-full rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-primary"
+                />
+              </div>
 
-            <div>
-              <label className="block font-bold mb-1">التقييم (من 1.0 إلى 5.0) ⭐</label>
-              <input
-                type="number"
-                min="1.0"
-                max="5.0"
-                step="0.1"
-                required
-                value={rating}
-                onChange={(e) => setRating(parseFloat(e.target.value) || 0)}
-                className="w-full rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-primary font-bold"
-              />
+              <div>
+                <label className="block font-bold mb-1">التقييم (من 1.0 إلى 5.0) ⭐</label>
+                <input
+                  type="number"
+                  min="1.0"
+                  max="5.0"
+                  step="0.1"
+                  required
+                  value={rating}
+                  onChange={(e) => setRating(parseFloat(e.target.value) || 0)}
+                  className="w-full rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-primary font-bold"
+                />
+              </div>
             </div>
-          </div>
 
             <div className="flex items-center gap-6 pt-2 border-t border-border/40">
               <label className="flex items-center gap-2 cursor-pointer">

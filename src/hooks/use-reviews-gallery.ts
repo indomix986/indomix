@@ -14,7 +14,7 @@ export const FALLBACK_REVIEWS: ReviewGalleryItem[] = [
   },
   {
     id: "sample-review-2",
-    image_url: "/assets/cat-classic.jpg",
+    image_url: "",
     display_order: 2,
     is_active: true,
   },

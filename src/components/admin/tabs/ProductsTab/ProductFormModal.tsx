@@ -5,6 +5,7 @@ import { useCreateProduct } from "@/hooks/admin/use-admin-products";
 import type { ProductSize } from "@/types/product";
 import { SmartPriceSection } from "./SmartPriceSection";
 import { ProductSizesSection } from "./ProductSizesSection";
+import { ProductImageUploader } from "./ProductImageUploader";
 
 interface CategoryOption {
   id: string;
@@ -27,7 +28,7 @@ export function ProductFormModal({ categories, onClose }: ProductFormModalProps)
   const [price, setPrice] = useState(65);
   const [oldPrice, setOldPrice] = useState<number | undefined>(undefined);
   const [rating, setRating] = useState<number>(5.0);
-  const [imageUrl, setImageUrl] = useState("/assets/cat-classic.jpg");
+  const [imageUrl, setImageUrl] = useState("");
   const [tag, setTag] = useState("");
   const [isPopular, setIsPopular] = useState(false);
   const [isAvailable, setIsAvailable] = useState(true);
@@ -66,8 +67,7 @@ export function ProductFormModal({ categories, onClose }: ProductFormModalProps)
 
     const defaultSize = sizes.find((s) => s.isDefault) || sizes[0];
     const finalPrice = hasMultipleSizes && defaultSize ? defaultSize.price : price;
-    const finalOldPrice =
-      hasMultipleSizes && defaultSize ? defaultSize.oldPrice : oldPrice || null;
+    const finalOldPrice = hasMultipleSizes && defaultSize ? defaultSize.oldPrice : oldPrice || null;
 
     try {
       await createMutation.mutateAsync({
@@ -167,17 +167,12 @@ export function ProductFormModal({ categories, onClose }: ProductFormModalProps)
             />
           )}
 
-          <div>
-            <label className="block font-bold mb-1">رابط الصورة المباشر (Image URL) *</label>
-            <input
-              type="text"
-              required
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="/assets/cat-classic.jpg أو https://..."
-              className="w-full rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-primary"
-            />
-          </div>
+          <ProductImageUploader
+            productId="new"
+            imageUrl={imageUrl}
+            onImageUploaded={(newUrl) => setImageUrl(newUrl)}
+            onUrlChange={(newUrl) => setImageUrl(newUrl)}
+          />
 
           <div>
             <label className="block font-bold mb-1">الوصف المختصر (يظهر في الكارت)</label>

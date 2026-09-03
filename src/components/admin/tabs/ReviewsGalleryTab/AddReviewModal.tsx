@@ -1,7 +1,8 @@
-import { useState, useRef } from "react";
-import { Plus, X, Image as ImageIcon, Upload, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Plus, X } from "lucide-react";
 import { toast } from "sonner";
-import { useCreateReview, uploadReviewImageFile } from "@/hooks/admin/use-admin-reviews";
+import { useCreateReview } from "@/hooks/admin/use-admin-reviews";
+import { AdminImageUploader } from "@/components/admin/AdminImageUploader";
 
 interface AddReviewModalProps {
   nextOrder: number;
@@ -10,44 +11,11 @@ interface AddReviewModalProps {
 
 export function AddReviewModal({ nextOrder, onClose }: AddReviewModalProps) {
   const createMutation = useCreateReview();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [imageUrl, setImageUrl] = useState("");
   const [displayOrder, setDisplayOrder] = useState<number>(nextOrder);
   const [isActive, setIsActive] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast.error("يرجى اختيار ملف صورة صالح (JPG, PNG, WebP)");
-      return;
-    }
-
-    try {
-      setIsUploading(true);
-      const uploadedUrl = await uploadReviewImageFile(file);
-      setImageUrl(uploadedUrl);
-      toast.success("تم رفع الصورة بنجاح!");
-    } catch (err: unknown) {
-      // If direct Supabase storage upload fails, convert to data URL as client preview or notify
-      const reader = new FileReader();
-      reader.onload = (uploadEvt) => {
-        const result = uploadEvt.target?.result as string;
-        if (result) {
-          setImageUrl(result);
-          toast.info("تم تحميل الصورة محلياً، يفضل استخدام رابط مباشر للإنتاج.");
-        }
-      };
-      reader.readAsDataURL(file);
-      const msg = err instanceof Error ? err.message : "تعذر الرفع إلى Supabase Storage";
-      console.warn("Storage upload failed:", msg);
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,62 +62,16 @@ export function AddReviewModal({ nextOrder, onClose }: AddReviewModalProps) {
           onSubmit={handleSubmit}
           className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 text-xs overscroll-contain"
         >
-          {/* Image URL & Upload Options */}
-          <div>
-            <label className="block font-bold mb-1">رابط صورة التقييم (Image URL) *</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                required
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://... أو /assets/review-1.jpg"
-                className="flex-1 rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-primary"
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-2 font-bold text-foreground hover:border-primary transition-colors disabled:opacity-50"
-              >
-                {isUploading ? (
-                  <Loader2 className="size-3.5 animate-spin text-primary" />
-                ) : (
-                  <Upload className="size-3.5 text-primary" />
-                )}
-                <span>{isUploading ? "جاري الرفع..." : "رفع ملف"}</span>
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-            </div>
-            <p className="mt-1 text-[11px] text-muted-foreground">
-              يمكنك لصق رابط مباشر للصورة أو رفع لقطة شاشة لتقييم العميل من جهازك.
-            </p>
-          </div>
-
-          {/* Live Image Preview */}
-          {imageUrl.trim() && (
-            <div>
-              <span className="block font-bold mb-1.5">معاينة ظهور الصورة في المعرض:</span>
-              <div className="relative aspect-[3/4] max-h-56 mx-auto w-44 overflow-hidden rounded-2xl border border-border bg-surface/80 shadow-md flex items-center justify-center">
-                <img
-                  src={imageUrl}
-                  alt="Backdrop blur preview"
-                  className="absolute inset-0 size-full object-cover blur-md scale-110 opacity-30 pointer-events-none"
-                />
-                <img
-                  src={imageUrl}
-                  alt="Review preview"
-                  className="relative z-10 size-full object-contain p-2"
-                />
-              </div>
-            </div>
-          )}
+          <AdminImageUploader
+            entityType="reviews"
+            entityId="new"
+            imageUrl={imageUrl}
+            label="صورة التقييم *"
+            helperText="ستُضاف إلى معرض التقييمات عند الحفظ"
+            onImageUploaded={(newUrl) => setImageUrl(newUrl)}
+            onUrlChange={(newUrl) => setImageUrl(newUrl)}
+            onUploadingChange={setIsUploading}
+          />
 
           {/* Display Order & Active status */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">

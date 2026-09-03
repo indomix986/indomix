@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { handleAdminImageUpload } from "./server/admin-image-upload";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -47,6 +48,32 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      const adminUploadMatch = url.pathname.match(
+        /^\/(?:api\/)?admin\/(products|categories|offers|reviews|upload)(?:\/([^/]+))?\/image\/?$/,
+      );
+
+      if (adminUploadMatch) {
+        if (request.method === "OPTIONS") {
+          return new Response(null, {
+            status: 204,
+            headers: {
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Methods": "POST, OPTIONS",
+              "Access-Control-Allow-Headers": "Authorization, Content-Type, x-supabase-auth",
+            },
+          });
+        }
+        if (request.method === "POST") {
+          const entityType = adminUploadMatch[1];
+          const entityId = adminUploadMatch[2] ? decodeURIComponent(adminUploadMatch[2]) : "new";
+          return await handleAdminImageUpload(request, entityType, entityId, env);
+        }
+        return new Response(JSON.stringify({ success: false, error: "Method Not Allowed" }), {
+          status: 405,
+          headers: { "Content-Type": "application/json; charset=utf-8" },
+        });
+      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

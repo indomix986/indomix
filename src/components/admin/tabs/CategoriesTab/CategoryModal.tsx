@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/types/database";
 import { useCreateCategory, useUpdateCategory } from "@/hooks/admin/use-admin-categories";
+import { AdminImageUploader } from "@/components/admin/AdminImageUploader";
 
 type DbCategory = Database["public"]["Tables"]["categories"]["Row"];
 
@@ -12,11 +13,7 @@ interface CategoryModalProps {
   categoriesCount?: number;
 }
 
-export function CategoryModal({
-  category,
-  onClose,
-  categoriesCount = 0,
-}: CategoryModalProps) {
+export function CategoryModal({ category, onClose, categoriesCount = 0 }: CategoryModalProps) {
   const isEditing = Boolean(category);
   const createMutation = useCreateCategory();
   const updateMutation = useUpdateCategory();
@@ -25,7 +22,7 @@ export function CategoryModal({
   const [name, setName] = useState(category?.name || "");
   const [badgeText, setBadgeText] = useState(category?.badge_text || "أصناف متنوعة");
   const [displayOrder, setDisplayOrder] = useState(category?.display_order ?? categoriesCount + 1);
-  const [imageUrl, setImageUrl] = useState(category?.image_url || "/assets/cat-classic.jpg");
+  const [imageUrl, setImageUrl] = useState(category?.image_url || "");
   const [isActive, setIsActive] = useState(category?.is_active ?? true);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -136,15 +133,14 @@ export function CategoryModal({
                 className="w-full rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-primary"
               />
             </div>
-            <div>
-              <label className="block font-bold mb-1">رابط صورة القسم</label>
-              <input
-                type="text"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="w-full rounded-xl border border-border bg-surface px-3 py-2 outline-none focus:border-primary"
-              />
-            </div>
+            <AdminImageUploader
+              entityType="categories"
+              entityId={category?.id || "new"}
+              imageUrl={imageUrl}
+              label="صورة القسم"
+              onImageUploaded={(newUrl) => setImageUrl(newUrl)}
+              onUrlChange={(newUrl) => setImageUrl(newUrl)}
+            />
             <div className="flex items-center gap-2 pt-2">
               <input
                 type="checkbox"
@@ -175,11 +171,7 @@ export function CategoryModal({
             disabled={isPending}
             className="rounded-xl bg-heat px-5 py-2 text-xs font-bold text-primary-foreground shadow-heat disabled:opacity-50 transition-transform hover:scale-105"
           >
-            {isPending
-              ? "جاري الحفظ..."
-              : isEditing
-                ? "حفظ التعديلات"
-                : "إنشاء القسم"}
+            {isPending ? "جاري الحفظ..." : isEditing ? "حفظ التعديلات" : "إنشاء القسم"}
           </button>
         </div>
       </div>
