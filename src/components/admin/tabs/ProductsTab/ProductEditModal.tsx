@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Edit2, Trash2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
-import type { Product } from "@/types/product";
+import type { Product, ProductSize } from "@/types/product";
 import {
   useUpdateProduct,
   useCreateProductExtra,
   useDeleteProductExtra,
 } from "@/hooks/admin/use-admin-products";
 import { SmartPriceSection } from "./SmartPriceSection";
+import { ProductSizesSection } from "./ProductSizesSection";
 
 interface CategoryOption {
   id: string;
@@ -41,6 +42,12 @@ export function ProductEditModal({
   const [isPopular, setIsPopular] = useState(Boolean(product.isPopular));
   const [isAvailable, setIsAvailable] = useState((product as any).isAvailable !== false);
 
+  // Multiple sizes state
+  const [hasMultipleSizes, setHasMultipleSizes] = useState<boolean>(
+    Boolean(product.sizes && product.sizes.length > 0),
+  );
+  const [sizes, setSizes] = useState<ProductSize[]>(product.sizes || []);
+
   // New Extra form state
   const [newExtraName, setNewExtraName] = useState("");
   const [newExtraPrice, setNewExtraPrice] = useState(15);
@@ -48,14 +55,36 @@ export function ProductEditModal({
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (hasMultipleSizes) {
+      if (sizes.length === 0) {
+        toast.error("يرجى إضافة حجم واحد على الأقل أو إلغاء تفعيل خيار الأحجام المتعددة");
+        return;
+      }
+      for (const s of sizes) {
+        if (!s.name.trim()) {
+          toast.error("يرجى كتابة اسم لكل حجم مضاف");
+          return;
+        }
+        if (s.price <= 0) {
+          toast.error("يرجى تحديد سعر صالح لكل حجم");
+          return;
+        }
+      }
+    }
+
+    const defaultSize = sizes.find((s) => s.isDefault) || sizes[0];
+    const finalPrice = hasMultipleSizes && defaultSize ? defaultSize.price : price;
+    const finalOldPrice =
+      hasMultipleSizes && defaultSize ? defaultSize.oldPrice : oldPrice || null;
+
     try {
       await updateMutation.mutateAsync({
         id: product.id,
         data: {
           name,
           category_id: categoryId,
-          price,
-          old_price: oldPrice || null,
+          price: finalPrice,
+          old_price: finalOldPrice || null,
           rating: Number(rating) || 5.0,
           image_url: imageUrl,
           tag: tag || null,
@@ -63,6 +92,7 @@ export function ProductEditModal({
           description,
           is_popular: isPopular,
           is_available: isAvailable,
+          sizes: (hasMultipleSizes ? sizes : []) as any,
         },
       });
       toast.success("تم تحديث الوجبة بنجاح");
@@ -149,16 +179,26 @@ export function ProductEditModal({
               </div>
             </div>
 
-            {/* Smart Pricing & Discount Section */}
-            <SmartPriceSection
-              price={price}
-              oldPrice={oldPrice}
-              onPriceChange={setPrice}
-              onOldPriceChange={setOldPrice}
-              onBadgeSuggest={(badge) => {
-                if (!tag) setTag(badge);
-              }}
+            {/* Sizes Section */}
+            <ProductSizesSection
+              hasMultipleSizes={hasMultipleSizes}
+              onHasMultipleSizesChange={setHasMultipleSizes}
+              sizes={sizes}
+              onSizesChange={setSizes}
             />
+
+            {/* Smart Pricing & Discount Section (Shown only if not multiple sizes) */}
+            {!hasMultipleSizes && (
+              <SmartPriceSection
+                price={price}
+                oldPrice={oldPrice}
+                onPriceChange={setPrice}
+                onOldPriceChange={setOldPrice}
+                onBadgeSuggest={(badge) => {
+                  if (!tag) setTag(badge);
+                }}
+              />
+            )}
 
             <div>
               <label className="block font-bold mb-1">رابط الصورة (Image URL) *</label>

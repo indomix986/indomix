@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import type { Product, ExtraOption } from "@/types/product";
+import type { Product, ExtraOption, ProductSize } from "@/types/product";
 import {
   CART_STORAGE_KEY,
   FAVORITES_STORAGE_KEY,
@@ -18,6 +18,14 @@ const ExtraOptionSchema: z.ZodType<ExtraOption> = z.object({
   price: z.number().min(0),
 });
 
+const ProductSizeSchema: z.ZodType<ProductSize> = z.object({
+  id: z.string(),
+  name: z.string(),
+  price: z.number().min(0),
+  oldPrice: z.number().min(0).nullish(),
+  isDefault: z.boolean().optional(),
+});
+
 const ProductSchema: z.ZodType<Product> = z.object({
   id: z.string(),
   name: z.string(),
@@ -32,6 +40,7 @@ const ProductSchema: z.ZodType<Product> = z.object({
   rating: z.number(),
   reviewsCount: z.number(),
   extras: z.array(ExtraOptionSchema),
+  sizes: z.array(ProductSizeSchema).optional(),
   isPopular: z.boolean().optional(),
   isAvailable: z.boolean().optional(),
 });
@@ -40,6 +49,7 @@ const CartItemSchema: z.ZodType<CartItem> = z.object({
   id: z.string(),
   productId: z.string(),
   product: ProductSchema,
+  selectedSize: ProductSizeSchema.optional(),
   quantity: z.number().min(1),
   spiciness: z.string(),
   selectedExtras: z.array(ExtraOptionSchema),
@@ -116,14 +126,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     spiciness = "",
     selectedExtras: ExtraOption[] = [],
     notes = "",
+    selectedSize?: ProductSize,
   ) => {
+    const sizeKey = selectedSize ? selectedSize.id : "default";
     const extrasKey = [...selectedExtras]
       .map((e) => e.id)
       .sort()
       .join("_");
-    const itemSignature = `${product.id}-${spiciness}-${extrasKey}-${notes.trim()}`;
+    const itemSignature = `${product.id}-${sizeKey}-${spiciness}-${extrasKey}-${notes.trim()}`;
     const extrasTotal = selectedExtras.reduce((sum, e) => sum + e.price, 0);
-    const unitPrice = product.price + extrasTotal;
+    const basePrice = selectedSize ? selectedSize.price : product.price;
+    const unitPrice = basePrice + extrasTotal;
 
     setCart((prev) => {
       const existingIdx = prev.findIndex((item) => item.id === itemSignature);
@@ -141,6 +154,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           id: itemSignature,
           productId: product.id,
           product,
+          selectedSize,
           quantity,
           spiciness,
           selectedExtras,
@@ -150,7 +164,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       ];
     });
 
-    toast.success(`تمت إضافة "${product.name}" إلى السلة`, {
+    const sizeName = selectedSize ? ` (${selectedSize.name})` : "";
+    toast.success(`تمت إضافة "${product.name}${sizeName}" إلى السلة`, {
       description: `${quantity} × ${unitPrice} ج.م`,
     });
   }, []);

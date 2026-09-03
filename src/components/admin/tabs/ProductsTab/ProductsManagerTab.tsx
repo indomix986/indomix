@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Plus, Eye, EyeOff, Edit2, Trash2, Star } from "lucide-react";
+import { Search, Plus, Eye, EyeOff, Edit2, Trash2, Star, Layers } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/types/product";
 import { useUpdateProduct, useDeleteProduct } from "@/hooks/admin/use-admin-products";
@@ -143,11 +143,21 @@ export function ProductsManagerTab({
                       <span className="text-[10px] text-muted-foreground block">
                         {p.categoryName}
                       </span>
-                      <div className="flex items-baseline gap-1.5 mt-1">
-                        <span className="text-xs font-extrabold text-primary">{p.price} ج.م</span>
-                        {p.oldPrice && (
-                          <span className="text-[10px] text-muted-foreground line-through">
-                            {p.oldPrice} ج.م
+                      <div className="flex flex-col gap-1 mt-1">
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-xs font-extrabold text-primary">
+                            {p.sizes && p.sizes.length > 0 ? `من ${p.price} ج.م` : `${p.price} ج.م`}
+                          </span>
+                          {p.oldPrice && (
+                            <span className="text-[10px] text-muted-foreground line-through">
+                              {p.oldPrice} ج.م
+                            </span>
+                          )}
+                        </div>
+                        {p.sizes && p.sizes.length > 0 && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-md w-fit border border-primary/20">
+                            <Layers className="size-2.5" />
+                            <span>{p.sizes.length} أحجام</span>
                           </span>
                         )}
                       </div>

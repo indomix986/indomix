@@ -25,7 +25,8 @@ function FavoritesPage() {
 
   const handleAddAllToCart = () => {
     favoriteProducts.forEach((product) => {
-      addToCart(product);
+      const defaultSize = product.sizes?.find((s) => s.isDefault) || product.sizes?.[0];
+      addToCart(product, 1, "", [], "", defaultSize);
     });
   };
 

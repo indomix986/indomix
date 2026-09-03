@@ -8,6 +8,14 @@ export interface ExtraOption {
   price: number;
 }
 
+export interface ProductSize {
+  id: string;
+  name: string;
+  price: number;
+  oldPrice?: number | null | undefined;
+  isDefault?: boolean | undefined;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -22,6 +30,7 @@ export interface Product {
   rating: number;
   reviewsCount: number;
   extras: ExtraOption[];
+  sizes?: ProductSize[] | undefined;
   isPopular?: boolean | undefined;
   isAvailable?: boolean | undefined;
 }

@@ -101,7 +101,8 @@ export function CartPage() {
     msg += `*الأصناف المطلوبة:*\n`;
 
     cart.forEach((item, idx) => {
-      msg += `${idx + 1}. *${item.product.name}* (الكمية: ${item.quantity})\n`;
+      const sizeText = item.selectedSize ? ` [حجم: ${item.selectedSize.name}]` : "";
+      msg += `${idx + 1}. *${item.product.name}*${sizeText} (الكمية: ${item.quantity})\n`;
       if (item.selectedExtras && item.selectedExtras.length > 0) {
         const extrasList = item.selectedExtras.map((e) => e.name).join("، ");
         msg += `   - إضافات: ${extrasList}\n`;
@@ -203,8 +204,13 @@ export function CartPage() {
                             params={{ id: item.productId }}
                             search={{ from: "cart" }}
                           >
-                            <h3 className="text-sm font-extrabold text-foreground hover:text-primary transition-colors">
-                              {item.product.name}
+                            <h3 className="text-sm font-extrabold text-foreground hover:text-primary transition-colors flex items-center gap-1.5 flex-wrap">
+                              <span>{item.product.name}</span>
+                              {item.selectedSize && (
+                                <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md border border-primary/20">
+                                  {item.selectedSize.name}
+                                </span>
+                              )}
                             </h3>
                           </Link>
 

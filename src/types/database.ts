@@ -66,6 +66,7 @@ export interface Database {
           reviews_count: number;
           is_popular: boolean;
           is_available: boolean;
+          sizes?: Json | null;
           created_at: string;
           updated_at: string;
         };
@@ -83,6 +84,7 @@ export interface Database {
           reviews_count?: number;
           is_popular?: boolean;
           is_available?: boolean;
+          sizes?: Json | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -100,6 +102,7 @@ export interface Database {
           reviews_count?: number;
           is_popular?: boolean;
           is_available?: boolean;
+          sizes?: Json | null;
           created_at?: string;
           updated_at?: string;
         };

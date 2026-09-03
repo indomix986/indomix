@@ -12,6 +12,8 @@ export function ProductCard({ product }: ProductCardProps) {
   const { isFavorite, toggleFavorite, addToCart } = useStore();
   const favorite = isFavorite(product.id);
 
+  const hasSizes = Boolean(product.sizes && product.sizes.length > 0);
+
   return (
     <div className="group flex w-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all duration-300 hover:border-primary/50 hover:shadow-lg">
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface">
@@ -76,6 +78,9 @@ export function ProductCard({ product }: ProductCardProps) {
 
         <div className="mt-auto flex flex-wrap items-center justify-between gap-1.5 pt-3 border-t border-border/40">
           <span className="flex items-baseline gap-1">
+            {hasSizes && (
+              <span className="text-[10px] text-muted-foreground font-bold">من</span>
+            )}
             <span className="text-base font-extrabold text-primary sm:text-lg">
               {product.price}
             </span>
@@ -87,14 +92,25 @@ export function ProductCard({ product }: ProductCardProps) {
             )}
           </span>
 
-          <button
-            type="button"
-            onClick={() => addToCart(product)}
-            className="inline-flex items-center gap-1 rounded-xl bg-heat px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground shadow-heat transition-all hover:scale-105 sm:px-3 sm:text-xs"
-          >
-            <Plus className="size-3 sm:size-3.5" />
-            <span>أضف</span>
-          </button>
+          {hasSizes ? (
+            <Link
+              to="/products/$id"
+              params={{ id: product.id }}
+              search={{ from: "menu" }}
+              className="inline-flex items-center gap-1 rounded-xl bg-heat px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground shadow-heat transition-all hover:scale-105 sm:px-3 sm:text-xs"
+            >
+              <span>اختر الحجم</span>
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => addToCart(product)}
+              className="inline-flex items-center gap-1 rounded-xl bg-heat px-2.5 py-1.5 text-[11px] font-bold text-primary-foreground shadow-heat transition-all hover:scale-105 sm:px-3 sm:text-xs"
+            >
+              <Plus className="size-3 sm:size-3.5" />
+              <span>أضف</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

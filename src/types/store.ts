@@ -1,9 +1,10 @@
-import type { Product, ExtraOption } from "@/types/product";
+import type { Product, ExtraOption, ProductSize } from "@/types/product";
 
 export interface CartItem {
   id: string; // unique item signature
   productId: string;
   product: Product;
+  selectedSize?: ProductSize | undefined;
   quantity: number;
   spiciness: string;
   selectedExtras: ExtraOption[];
@@ -20,6 +21,7 @@ export interface StoreContextType {
     spiciness?: string,
     selectedExtras?: ExtraOption[],
     notes?: string,
+    selectedSize?: ProductSize,
   ) => void;
   removeFromCart: (cartItemId: string) => void;
   updateQuantity: (cartItemId: string, delta: number) => void;

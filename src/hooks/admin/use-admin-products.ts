@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import type { Database } from "@/types/database";
-import type { Product, ExtraOption } from "@/types/product";
+import type { Product, ExtraOption, ProductSize } from "@/types/product";
+import { parseProductSizes } from "@/hooks/use-catalog";
 
 type DbProduct = Database["public"]["Tables"]["products"]["Row"];
 type DbProductExtra = Database["public"]["Tables"]["product_extras"]["Row"];
@@ -59,6 +60,7 @@ export function useAdminAllProducts() {
         rating: Number(p.rating),
         reviewsCount: p.reviews_count,
         extras: extrasByProd[p.id] || [],
+        sizes: parseProductSizes(p.sizes),
         isPopular: p.is_popular,
         isAvailable: p.is_available,
       }));
@@ -79,6 +81,7 @@ export interface CreateProductPayload {
   rating?: number;
   is_popular?: boolean;
   is_available?: boolean;
+  sizes?: ProductSize[];
   extras?: { name: string; price: number }[];
 }
 
@@ -104,6 +107,7 @@ export function useCreateProduct() {
           rating: productData.rating !== undefined ? Number(productData.rating) : 5.0,
           is_popular: Boolean(productData.is_popular),
           is_available: productData.is_available !== undefined ? productData.is_available : true,
+          sizes: (productData.sizes || []) as any,
         })
         .select()
         .single();

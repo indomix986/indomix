@@ -129,6 +129,7 @@ CREATE TABLE public.products (
     reviews_count integer DEFAULT 0 NOT NULL,
     is_popular boolean DEFAULT false NOT NULL,
     is_available boolean DEFAULT true NOT NULL,
+    sizes jsonb DEFAULT '[]'::jsonb,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT products_price_check CHECK ((price >= (0)::numeric))

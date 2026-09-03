@@ -16,7 +16,7 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { ProductCard } from "@/components/site/ProductCard";
 import { ProductDetailSkeleton } from "@/components/site/Skeletons";
-import type { ExtraOption } from "@/types/product";
+import type { ExtraOption, ProductSize } from "@/types/product";
 import { useStore } from "@/context/StoreContext";
 import {
   useSingleProduct,
@@ -95,8 +95,18 @@ function ProductDetailPage() {
 
   // Customization state
   const [selectedExtras, setSelectedExtras] = useState<ExtraOption[]>([]);
+  const [selectedSize, setSelectedSize] = useState<ProductSize | undefined>(undefined);
   const [notes, setNotes] = useState("");
   const [quantity, setQuantity] = useState(1);
+
+  // Sync selectedSize when product loads or changes
+  useEffect(() => {
+    if (product?.sizes && product.sizes.length > 0) {
+      setSelectedSize(product.sizes.find((s) => s.isDefault) || product.sizes[0]);
+    } else {
+      setSelectedSize(undefined);
+    }
+  }, [product?.id, product?.sizes]);
 
   // Image load state — resets on product change to prevent stale-image flash
   const [isImgLoaded, setIsImgLoaded] = useState(false);
@@ -169,11 +179,13 @@ function ProductDetailPage() {
   };
 
   const extrasTotal = selectedExtras.reduce((sum, e) => sum + e.price, 0);
-  const unitPrice = product.price + extrasTotal;
+  const basePrice = selectedSize ? selectedSize.price : product.price;
+  const baseOldPrice = selectedSize ? selectedSize.oldPrice : product.oldPrice;
+  const unitPrice = basePrice + extrasTotal;
   const totalPrice = unitPrice * quantity;
 
   const handleAddToCart = () => {
-    addToCart(product, quantity, "", selectedExtras, notes);
+    addToCart(product, quantity, "", selectedExtras, notes, selectedSize);
   };
 
   const sameCategoryProducts = allProducts.filter(
@@ -307,16 +319,69 @@ function ProductDetailPage() {
                 </div>
               )}
 
-              <div className="mt-4 flex items-baseline gap-2">
+              <div className="mt-4 flex items-baseline gap-2 flex-wrap">
                 <span className="text-3xl font-extrabold text-primary">{unitPrice}</span>
                 <span className="text-xs font-bold text-muted-foreground">جنيه مصري</span>
-                {product.oldPrice && (
+                {baseOldPrice && (
                   <span className="text-sm text-muted-foreground line-through ms-2">
-                    {product.oldPrice} ج.م
+                    {baseOldPrice} ج.م
+                  </span>
+                )}
+                {selectedSize && (
+                  <span className="ms-2 text-xs font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20">
+                    {selectedSize.name}
                   </span>
                 )}
               </div>
             </div>
+
+            {/* Customization 1: Sizes */}
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="rounded-2xl border border-border bg-card p-4 shadow-soft">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-xs font-extrabold text-foreground">
+                    اختر الحجم المناسب:
+                  </label>
+                  {selectedSize && (
+                    <span className="text-xs font-bold text-primary">
+                      الحجم الحالي: {selectedSize.name}
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {product.sizes.map((size: ProductSize) => {
+                    const isSelected = selectedSize?.id === size.id;
+                    return (
+                      <button
+                        key={size.id}
+                        type="button"
+                        onClick={() => setSelectedSize(size)}
+                        className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all cursor-pointer ${
+                          isSelected
+                            ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary shadow-xs"
+                            : "border-border bg-surface text-muted-foreground hover:text-foreground hover:border-border/80"
+                        }`}
+                      >
+                        <span className="font-extrabold text-xs text-foreground">
+                          {size.name}
+                        </span>
+                        <div className="mt-1 flex items-baseline gap-1">
+                          <span className="text-xs font-extrabold text-primary">
+                            {size.price} ج.م
+                          </span>
+                          {size.oldPrice && (
+                            <span className="text-[10px] text-muted-foreground line-through">
+                              {size.oldPrice}
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Customization 2: Extras */}
             {product.extras.length > 0 && (

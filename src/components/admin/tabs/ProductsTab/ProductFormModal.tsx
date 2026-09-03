@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { useCreateProduct } from "@/hooks/admin/use-admin-products";
+import type { ProductSize } from "@/types/product";
 import { SmartPriceSection } from "./SmartPriceSection";
+import { ProductSizesSection } from "./ProductSizesSection";
 
 interface CategoryOption {
   id: string;
@@ -30,6 +32,10 @@ export function ProductFormModal({ categories, onClose }: ProductFormModalProps)
   const [isPopular, setIsPopular] = useState(false);
   const [isAvailable, setIsAvailable] = useState(true);
 
+  // Multiple sizes state
+  const [hasMultipleSizes, setHasMultipleSizes] = useState(false);
+  const [sizes, setSizes] = useState<ProductSize[]>([]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !description.trim() || !imageUrl.trim()) {
@@ -37,9 +43,31 @@ export function ProductFormModal({ categories, onClose }: ProductFormModalProps)
       return;
     }
 
+    if (hasMultipleSizes) {
+      if (sizes.length === 0) {
+        toast.error("يرجى إضافة حجم واحد على الأقل أو إلغاء تفعيل خيار الأحجام المتعددة");
+        return;
+      }
+      for (const s of sizes) {
+        if (!s.name.trim()) {
+          toast.error("يرجى كتابة اسم لكل حجم مضاف");
+          return;
+        }
+        if (s.price <= 0) {
+          toast.error("يرجى تحديد سعر صالح لكل حجم");
+          return;
+        }
+      }
+    }
+
     const slug =
       id.trim() ||
       name.trim().toLowerCase().replace(/\s+/g, "-") + "-" + Date.now().toString().slice(-4);
+
+    const defaultSize = sizes.find((s) => s.isDefault) || sizes[0];
+    const finalPrice = hasMultipleSizes && defaultSize ? defaultSize.price : price;
+    const finalOldPrice =
+      hasMultipleSizes && defaultSize ? defaultSize.oldPrice : oldPrice || null;
 
     try {
       await createMutation.mutateAsync({
@@ -48,13 +76,14 @@ export function ProductFormModal({ categories, onClose }: ProductFormModalProps)
         name,
         short_description: shortDescription || name,
         description,
-        price,
-        old_price: oldPrice || null,
+        price: finalPrice,
+        old_price: finalOldPrice || null,
         rating: Number(rating) || 5.0,
         image_url: imageUrl,
         tag: tag || null,
         is_popular: isPopular,
         is_available: isAvailable,
+        sizes: hasMultipleSizes ? sizes : [],
       });
       toast.success("تمت إضافة الوجبة بنجاح!");
       onClose();
@@ -117,16 +146,26 @@ export function ProductFormModal({ categories, onClose }: ProductFormModalProps)
             </div>
           </div>
 
-          {/* Smart Pricing & Discount Section */}
-          <SmartPriceSection
-            price={price}
-            oldPrice={oldPrice}
-            onPriceChange={setPrice}
-            onOldPriceChange={setOldPrice}
-            onBadgeSuggest={(badge) => {
-              if (!tag) setTag(badge);
-            }}
+          {/* Sizes Section */}
+          <ProductSizesSection
+            hasMultipleSizes={hasMultipleSizes}
+            onHasMultipleSizesChange={setHasMultipleSizes}
+            sizes={sizes}
+            onSizesChange={setSizes}
           />
+
+          {/* Smart Pricing & Discount Section (Shown only if not multiple sizes) */}
+          {!hasMultipleSizes && (
+            <SmartPriceSection
+              price={price}
+              oldPrice={oldPrice}
+              onPriceChange={setPrice}
+              onOldPriceChange={setOldPrice}
+              onBadgeSuggest={(badge) => {
+                if (!tag) setTag(badge);
+              }}
+            />
+          )}
 
           <div>
             <label className="block font-bold mb-1">رابط الصورة المباشر (Image URL) *</label>

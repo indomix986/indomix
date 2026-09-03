@@ -6,7 +6,7 @@ import {
   RESTAURANT_WORKING_HOURS,
   DEFAULT_DELIVERY_FEE,
 } from "@/constants/restaurant";
-import type { Product, ExtraOption, Offer } from "@/types/product";
+import type { Product, ExtraOption, Offer, ProductSize } from "@/types/product";
 import type { Database } from "@/types/database";
 
 type DbProduct = Database["public"]["Tables"]["products"]["Row"];
@@ -135,6 +135,17 @@ export function useCategories() {
   return useQuery(categoriesQueryOptions());
 }
 
+export function parseProductSizes(raw: unknown): ProductSize[] {
+  if (!raw || !Array.isArray(raw)) return [];
+  return (raw as any[]).map((s) => ({
+    id: String(s.id || ""),
+    name: String(s.name || ""),
+    price: Number(s.price || 0),
+    oldPrice: s.oldPrice != null ? Number(s.oldPrice) : null,
+    isDefault: Boolean(s.isDefault),
+  }));
+}
+
 export const productsQueryOptions = () =>
   queryOptions({
     queryKey: ["products"],
@@ -191,6 +202,7 @@ export const productsQueryOptions = () =>
           rating: Number(p.rating),
           reviewsCount: p.reviews_count,
           extras: extrasByProd[p.id] || [],
+          sizes: parseProductSizes(p.sizes),
           isPopular: p.is_popular,
         }));
       } catch {
@@ -254,6 +266,7 @@ export const singleProductQueryOptions = (id: string) =>
             name: e.name,
             price: Number(e.price),
           })),
+          sizes: parseProductSizes(p.sizes),
           isPopular: p.is_popular,
         };
       } catch {
